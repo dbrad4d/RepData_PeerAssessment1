@@ -1,7 +1,7 @@
 ---
 title: "Reproducible Research: Peer Assessment 1"
 author: "David Bradford"
-date: "`r format(Sys.time(), '%B %d, %Y')`"
+date: "August 09, 2018"
 output:
  html_document:
    keep_md: true
@@ -11,7 +11,8 @@ output:
    #theme: cosmo
 ---
 
-```{r load packages, echo=TRUE, message=FALSE, warning=FALSE}
+
+```r
 library(ggplot2)
 #library(dplyr)
 library(plyr)
@@ -28,7 +29,8 @@ library(lubridate)
 
 ## Loading and preprocessing the data
 
-```{r load data, echo=TRUE}
+
+```r
 # set working & create data directory
 setwd("C:\\Users\\dabradford\\Desktop\\Coursera\\DataSci\\Reproducible\\RepData_PeerAssessment1")
 if(!file.exists("./data")){dir.create("./data")}
@@ -60,7 +62,8 @@ activity$date <- as.Date(activity$date, "%Y-%m-%d")
 
 ## What is mean total number of steps taken per day?
 
-```{r, echo=TRUE}
+
+```r
 options(scipen=999)
 steps_per_day <- ddply(activity, ~date, summarise, steps=sum(steps, na.rm = TRUE))
 #mean_steps = summarise(steps_per_day, mean(steps))
@@ -75,8 +78,10 @@ plot1 <- ggplot(steps_per_day, aes(x=date, y=steps)) +
 plot1
 ```
 
+![](PA1_bradford_files/figure-html/unnamed-chunk-1-1.png)<!-- -->
 
-### The mean number of steps taken per day (excluding days with no steps) is `r mean_steps`.
+
+### The mean number of steps taken per day (excluding days with no steps) is 10766.
 
 
 

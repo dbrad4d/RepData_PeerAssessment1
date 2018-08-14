@@ -63,12 +63,13 @@ activity$date <- as.Date(activity$date, "%Y-%m-%d")
 ```{r, echo=TRUE}
 options(scipen=999)
 steps_per_day <- ddply(activity, ~date, summarise, steps=sum(steps, na.rm = TRUE))
-#mean_steps = summarise(steps_per_day, mean(steps))
+
 mean_steps = round(mean(steps_per_day$steps[steps_per_day$steps != 0]), 0)
+median_steps = round(median(steps_per_day$steps[steps_per_day$steps != 0]), 0)
 
 plot1 <- ggplot(steps_per_day, aes(x=date, y=steps)) + 
     geom_bar(stat="identity") +
-    labs(x="Date", y="Steps", title="                 Total number of steps each day") +
+    labs(x="Date", y="Steps", title="                             Total number of steps each day") +
     theme_minimal() +
     geom_hline(yintercept = round(mean(steps_per_day$steps[steps_per_day$steps != 0]), 0), col='blue',size=1)
 
@@ -76,15 +77,76 @@ plot1
 ```
 
 
-### The mean number of steps taken per day (excluding days with no steps) is `r mean_steps`.
+### The mean number of steps taken per day (excluding days with no steps) is `r mean_steps`. The median number of steps is `r median_steps`.
+
 
 
 
 ## What is the average daily activity pattern?
 
+```{r echo=TRUE}
+time_series <- tapply(activity$steps, activity$interval, mean, na.rm = TRUE)
+
+plot(row.names(time_series), time_series, type = "l", xlab = "5-min interval", 
+    ylab = "Avg across all Days", main = "Avg # of steps",
+    col = "blue")
+
+max_interval <- names(which.max(time_series))
+```
+
+### The 5-minute interval across all the days in the dataset that, on average, contains the maximum number of steps is the `r max_interval` interval.
+
 
 
 ## Imputing missing values
+
+Ok so I went ahead and answered question 1 accounting for missing values.  But for that question I ignored any observation with a 'NA'.  Now I want to fill in those NAs with an alternate value that make sense but don't introduce any further bias in  the data.
+
+First, how many NAs are in the data set?
+
+```{r}
+summary(activity)
+```
+
+We have 2,304 NAs in the 'steps' variable.
+
+We were given two options to fill in the missing data:
+
+1.  Use the mean/median for that day, or
+2.  Use the mean for that 5-minute interval
+
+I think using the mean for the 5-minute interval makes the most sense so I will create a new data set but with missing data filled in:
+
+```{r}
+new_steps_per_day <- activity
+
+na_steps <- is.na(new_steps_per_day$steps)
+
+mean_interval <- tapply(new_steps_per_day$steps, new_steps_per_day$interval, mean, na.rm=TRUE)
+
+new_steps_per_day$steps[na_steps] <- mean_interval[as.character(new_steps_per_day$interval[na_steps])]
+
+summary(new_steps_per_day)
+```
+
+So, no more NAs in the dataset.  Now let's plot a histogram and compare to my original findings in question 1:
+
+```{r, echo=TRUE}
+options(scipen=999)
+
+mean_steps = round(mean(new_steps_per_day$steps))
+median_steps = round(median(new_steps_per_day$steps))
+
+plot2 <- ggplot(new_steps_per_day, aes(x=date, y=steps)) + 
+    geom_bar(stat="identity") +
+    labs(x="Date", y="Steps", title="          Total number of steps each day (no missing values)") +
+    theme_minimal() +
+    geom_hline(yintercept = mean_steps, col='blue',size=1)
+
+plot1
+plot2
+```
+
 
 
 

@@ -1,7 +1,7 @@
 ---
 title: "Reproducible Research: Peer Assessment 1"
 author: "David Bradford"
-date: "August 09, 2018"
+date: "August 14, 2018"
 output:
  html_document:
    keep_md: true
@@ -66,12 +66,13 @@ activity$date <- as.Date(activity$date, "%Y-%m-%d")
 ```r
 options(scipen=999)
 steps_per_day <- ddply(activity, ~date, summarise, steps=sum(steps, na.rm = TRUE))
-#mean_steps = summarise(steps_per_day, mean(steps))
+
 mean_steps = round(mean(steps_per_day$steps[steps_per_day$steps != 0]), 0)
+median_steps = round(median(steps_per_day$steps[steps_per_day$steps != 0]), 0)
 
 plot1 <- ggplot(steps_per_day, aes(x=date, y=steps)) + 
     geom_bar(stat="identity") +
-    labs(x="Date", y="Steps", title="                 Total number of steps each day") +
+    labs(x="Date", y="Steps", title="                             Total number of steps each day") +
     theme_minimal() +
     geom_hline(yintercept = round(mean(steps_per_day$steps[steps_per_day$steps != 0]), 0), col='blue',size=1)
 
@@ -81,11 +82,31 @@ plot1
 ![](PA1_bradford_files/figure-html/unnamed-chunk-1-1.png)<!-- -->
 
 
-### The mean number of steps taken per day (excluding days with no steps) is 10766.
+### The mean number of steps taken per day (excluding days with no steps) is 10766. The median number of steps is 10765.
+
 
 
 
 ## What is the average daily activity pattern?
+
+
+```r
+time_series <- tapply(activity$steps, activity$interval, mean, na.rm = TRUE)
+
+plot(row.names(time_series), time_series, type = "l", xlab = "5-min interval", 
+    ylab = "Avg across all Days", main = "Avg # of steps",
+    col = "blue")
+```
+
+![](PA1_bradford_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
+
+```r
+max_interval <- names(which.max(time_series))
+```
+
+### The 5-minute interval across all the days in the dataset that, on average, contains the maximum number of steps is the 835 interval.
+
+
 
 
 

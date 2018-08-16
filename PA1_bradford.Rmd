@@ -13,16 +13,11 @@ output:
 
 ```{r load packages, echo=TRUE, message=FALSE, warning=FALSE}
 library(ggplot2)
-#library(dplyr)
+library(dplyr)
 library(plyr)
-#library(statsr)
 library(data.table)
-#library(ggplot2)
-#library(grid)
-#library(gridExtra)
-#library(knitr)
-#library(kableExtra)
-#library(tidyverse)
+library(grid)
+library(gridExtra)
 library(lubridate)
 ```
 
@@ -77,7 +72,7 @@ plot1
 ```
 
 
-### The mean number of steps taken per day (excluding days with no steps) is `r mean_steps`. The median number of steps is `r median_steps`.
+### The mean number of steps taken per day (excluding days with no steps) is __`r mean_steps`__. The median number of steps is __`r median_steps`__.
 
 
 
@@ -94,7 +89,7 @@ plot(row.names(time_series), time_series, type = "l", xlab = "5-min interval",
 max_interval <- names(which.max(time_series))
 ```
 
-### The 5-minute interval across all the days in the dataset that, on average, contains the maximum number of steps is the `r max_interval` interval.
+### The 5-minute interval across all the days in the dataset that, on average, contains the maximum number of steps is the __`r max_interval`__ interval.
 
 
 
@@ -129,26 +124,48 @@ new_steps_per_day$steps[na_steps] <- mean_interval[as.character(new_steps_per_da
 summary(new_steps_per_day)
 ```
 
-So, no more NAs in the dataset.  Now let's plot a histogram and compare to my original findings in question 1:
+So, no more NAs in the dataset, yay!  Now let's plot a histogram and compare to my original findings in question 1:
 
 ```{r, echo=TRUE}
 options(scipen=999)
+grp_steps_per_day <- ddply(new_steps_per_day, ~date, summarise, steps=sum(steps, na.rm = TRUE))
 
-mean_steps = round(mean(new_steps_per_day$steps))
-median_steps = round(median(new_steps_per_day$steps))
+mean_steps_new = round(mean(grp_steps_per_day$steps))
+median_steps_new = round(median(grp_steps_per_day$steps))
 
-plot2 <- ggplot(new_steps_per_day, aes(x=date, y=steps)) + 
+plot2 <- ggplot(grp_steps_per_day, aes(x=date, y=steps)) + 
     geom_bar(stat="identity") +
-    labs(x="Date", y="Steps", title="          Total number of steps each day (no missing values)") +
+    labs(x="Date", y="Steps", title="                      Total number of steps each day (NAs imputed)") +
     theme_minimal() +
     geom_hline(yintercept = mean_steps, col='blue',size=1)
 
-plot1
-plot2
+grid.arrange(plot1, plot2, ncol = 1)
 ```
 
+### In the original data, the mean number of steps taken per day (excluding days with no steps) was __`r mean_steps`__. The median number of steps was __`r median_steps`__.  In the new data set, with missing values imputed, the mean number of steps taken per day is unchanged at __`r mean_steps_new`__.  The median number of steps is increased by 1 to __`r median_steps_new`__.
 
+Given my approach in filling in the missing data by averaging out adjacent intervals it makes sense that the mean and median numbers are unchanged.
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+First I'll create a new factor variable in the new dataset with two levels:  "weekday" and "weekend".
+
+```{r}
+#create vector with "Saturday" and "Sunday"
+weekend_days <- weekdays(Sys.Date()+2:3)
+
+new_steps_per_day <- mutate(new_steps_per_day, day.type = ifelse(weekdays(new_steps_per_day$date+0) %in% weekend_days, "weekend", "weekday"))
+```
+
+And then plot the two categorical variables
+
+```{r warning=FALSE}
+weekday <- aggregate(steps ~ interval + day.type, data = new_steps_per_day, FUN = mean, na.rm = TRUE)
+
+ggplot(weekday, aes(x=interval, y=steps)) + 
+  geom_line(color="blue", size=1) + 
+  facet_wrap(~day.type, nrow=2) +
+  labs(x="\nInterval", y="\nNumber of steps")
+```
 
